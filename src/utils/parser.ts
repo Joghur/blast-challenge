@@ -29,7 +29,7 @@ const calculatePlayerStats = (
   killer: string,
   dead: string,
 ) => {
-  // Ir array contains player name the kill/death score will be increased
+  // If array contains item with player name, it's kill/death score will be increased
   // otherwise a new entry will be added
   if (userKillStats.some(obj => obj.name === killer || obj.name === dead)) {
     return userKillStats.map(obj => {
@@ -73,11 +73,11 @@ export const parseLogs = (text: string): Match => {
   const logArray = text.split('\n');
 
   logArray.forEach((textLine: string) => {
-    // split where colon has a number on left and space on right which is unique for each line
+    // Using split where text has a colon with a number on left and space on right which is unique for each line
     // Better way would be to use a proper regex but this was faster
     const [dateTimePart, logPart] = textLine.split(/\d:\s/);
 
-    // remove seconds and separate date from time
+    // Remove seconds and separate date from time
     const date = dateTimePart.slice(0, -2).split(' - ')[0];
     const time = dateTimePart.slice(0, -2).split(' - ')[1];
     const [month, day, year] = date.split('/');
@@ -85,7 +85,7 @@ export const parseLogs = (text: string): Match => {
 
     const logString = logPart?.trim();
 
-    // last Match_start counts
+    // Last Match_start counts
     if (logString?.includes('Match_Start')) {
       accMatch = { ...initMatch }; // Reset match when Match_Start
       accMatch.matchStart = timestamp;
@@ -94,7 +94,7 @@ export const parseLogs = (text: string): Match => {
       accMatch.matchEnd = timestamp;
     }
     if (logString?.includes('Game Over')) {
-      // log example - 11/28/2021 - 21:30:17: Game Over: competitive 1092904694 de_nuke score 6:16 after 50 min
+      // Log example - 11/28/2021 - 21:30:17: Game Over: competitive 1092904694 de_nuke score 6:16 after 50 min
       const pattern = // finding three groups: de_nuke, 6:16 score and the map time in minutes
         /^.+(de_[a-z]+)\sscore(\s\d{1,2}:\d{1,2})\safter\s(\d{1,3})/;
 
@@ -120,12 +120,12 @@ export const parseLogs = (text: string): Match => {
       }
     }
     if (logString?.includes('killed') && !logString?.includes('killed other')) {
-      // log example - 11/28/2021 - 21:30:04: "ZywOo<26><STEAM_1:1:76700232><TERRORIST>" [966 -585 -640] killed "b1t<35><STEAM_1:0:143170874><CT>" [798 -1313 -576] with "ak47"
+      // Log example - 11/28/2021 - 21:30:04: "ZywOo<26><STEAM_1:1:76700232><TERRORIST>" [966 -585 -640] killed "b1t<35><STEAM_1:0:143170874><CT>" [798 -1313 -576] with "ak47"
       const killer = logString.split('<')[0].slice(1); // Quick and dirty way to get name from above text
       const dead = logString.split('killed "')[1].split('<')[0];
       if (killer) {
         accMatch.userStats = calculatePlayerStats(
-          accMatch.userStats || [],
+          accMatch.userStats,
           killer,
           dead,
         );
