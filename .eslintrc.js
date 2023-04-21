@@ -7,14 +7,9 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['react-hooks', 'react', 'import', 'promise', 'prettier'],
   extends: [
-    'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+    'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true, // Allows for the parsing of JSX
-    },
-  },
   rules: {
     '@typescript-eslint/no-use-before-define': ['off'],
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -22,6 +17,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn'],
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'off',
+    'prettier/prettier': ['error', { bracketSameLine: false }],
   },
   overrides: [
     {
