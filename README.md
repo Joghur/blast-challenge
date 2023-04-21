@@ -1,21 +1,11 @@
-# Getting Started with Create React App
+# Blast challenge
 
-This is a react typescript project. 
+This is a react project parsing and showing results from a CSGO match.
 
+## Initialization
 
-## initialization
-Inside root folder: 
 ### `npm i`
 
-
-## Available Scripts
-
-In the project directory, you can run:
+## Run
 
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-### `npm run build`
-
