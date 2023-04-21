@@ -1,4 +1,4 @@
-# Blast challenge
+# Challenge
 
 This is a react project parsing and showing results from a CSGO match.
 
