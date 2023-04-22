@@ -1,3 +1,10 @@
+interface Accolade {
+  accoladeType: string;
+  name: string;
+  score: number;
+  value: number;
+}
+
 export interface Match {
   map: string;
   matchStart: string;
@@ -9,6 +16,7 @@ export interface Match {
   roundsPlayed: number;
   mapTime: number;
   userStats: KillStats[];
+  accolades: Accolade[];
 }
 
 export interface KillStats {
@@ -16,6 +24,56 @@ export interface KillStats {
   kills: number;
   dead: number;
 }
+
+type PatternCase = 'killed' | 'accolade' | 'error';
+
+interface EvaluatePatternType {
+  pattern: RegExp;
+  case: PatternCase;
+  match?: RegExpMatchArray | null;
+}
+interface MatchedType {
+  case: PatternCase;
+  match: RegExpMatchArray | null;
+}
+
+// (\d{2}\/\d{2}\/\d{4})\s-\s(\d{2}:\d{2}:\d{2}):\sGame\sOver:\s([a-z]+)
+
+// eslint-disable-next-line prettier/prettier
+const dateAndTime = '(d{2}/d{2}/d{4})s-s(d{2}:d{2}:d{2})';
+
+const patterns: EvaluatePatternType[] = [
+  {
+    // three groups: map type, score and map time
+    case: 'killed',
+    pattern: /^.+(de_[a-z]+)\sscore\s(\d{1,2}:\d{1,2})\safter\s(\d{1,3})\smin$/,
+  },
+  {
+    // 4 groups, accolade-type, name, value and score
+    case: 'accolade',
+    pattern:
+      /ACCOLADE,\sFINAL:\s{(pistolkills|burndamage|firstkills|hsp|kills|3k|4k|hsp|cashspent|burndamage)},\s+(.+)<\d+>,\s+VALUE:\s(\d+.\d+),.+SCORE:\s(\d+.\d+)$/,
+  },
+];
+
+const evaluateLines = (line: string): MatchedType | null => {
+  const patternMatched = patterns.filter(ep => line.match(ep.pattern));
+  //   console.log('patternMatched.length', patternMatched.length);
+
+  if (patternMatched.length === 0) {
+    return null;
+  }
+
+  if (patternMatched.length > 1) {
+    return { case: 'error', match: null };
+  }
+  const matches = line.match(patternMatched[0].pattern);
+
+  //   console.log('patternMatched', patternMatched);
+  //   console.log(matches);
+  // Will return only one type of MatchedType
+  return { case: patternMatched[0].case, match: matches };
+};
 
 /**
  * Calculate player stats
@@ -52,8 +110,8 @@ const calculatePlayerStats = (
 /**
  * Handles parsing of raw url data
  *
- * @param text
- * @returns parsed values in form of Match type
+ * @param text string
+ * @returns Match - parsed values
  */
 export const parseLogs = (text: string): Match => {
   const initMatch: Match = {
@@ -67,6 +125,7 @@ export const parseLogs = (text: string): Match => {
     roundsPlayed: 0,
     mapTime: 0,
     userStats: [],
+    accolades: [],
   };
 
   let accMatch: Match = { ...initMatch };
@@ -85,6 +144,42 @@ export const parseLogs = (text: string): Match => {
 
     const logString = logPart?.trim();
 
+    const matches = evaluateLines(logString);
+
+    if (matches) {
+      switch (matches.case) {
+        case 'killed':
+          if (matches.match) {
+            const [, map, score, mapTime] = matches.match;
+            accMatch.map = map;
+            accMatch.ctScore = Number(score.split(':')[0]);
+            accMatch.tScore = Number(score.split(':')[1]);
+            accMatch.mapTime = Number(mapTime);
+          }
+          break;
+
+        case 'accolade':
+          if (matches.match) {
+            const [, accoladeType, name, value, score] = matches.match;
+            accMatch.accolades = [
+              ...accMatch.accolades,
+              {
+                accoladeType,
+                name,
+                score: Number(score),
+                value: Number(value),
+              },
+            ];
+            console.log(accoladeType, name, value, score);
+          }
+          break;
+
+        default:
+          console.log('No pattern found for this line:', textLine);
+          break;
+      }
+    }
+
     // Last Match_start counts
     if (logString?.includes('Match_Start')) {
       accMatch = { ...initMatch }; // Reset match when Match_Start
@@ -92,20 +187,6 @@ export const parseLogs = (text: string): Match => {
     }
     if (logString?.includes('Round_End')) {
       accMatch.matchEnd = timestamp;
-    }
-    if (logString?.includes('Game Over')) {
-      // Log example - 11/28/2021 - 21:30:17: Game Over: competitive 1092904694 de_nuke score 6:16 after 50 min
-      const pattern = // finding three groups: de_nuke, 6:16 score and the map time in minutes
-        /^.+(de_[a-z]+)\sscore(\s\d{1,2}:\d{1,2})\safter\s(\d{1,3})/;
-
-      const matches = logString.match(pattern);
-      if (matches) {
-        const [, map, score, mapTime] = matches;
-        accMatch.map = map;
-        accMatch.ctScore = Number(score.split(':')[0]);
-        accMatch.tScore = Number(score.split(':')[1]);
-        accMatch.mapTime = Number(mapTime);
-      }
     }
     if (logString?.includes('MatchStatus')) {
       if (logString?.includes('CT')) {

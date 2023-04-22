@@ -2,6 +2,7 @@ import { Paper, Stack, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { log } from '../sources/match_log';
 import { Match, parseLogs, KillStats } from '../utils/parser';
+import Accolades from './Accolades';
 import MatchHeader from './MatchHeader';
 import MatchResult from './MatchResult';
 import PlayerScores from './PlayerScores';
@@ -28,6 +29,7 @@ const MatchStatistics = () => {
             <MatchHeader match={match} />
             <MatchResult match={match} />
             <PlayerScores killStats={sortedKillStats} />
+            <Accolades match={match} />
           </Stack>
         </Paper>
       </Stack>
