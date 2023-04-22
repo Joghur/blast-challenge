@@ -16,9 +16,12 @@ const MatchStatistics = () => {
 
   const { userStats } = match;
 
-  const sortedKillStats = userStats.sort(
-    (a: KillStats, b: KillStats) => b.kills - a.kills,
-  );
+  const sortedKillStats = userStats.sort((a: KillStats, b: KillStats) => {
+    if (b?.kills && a?.kills) {
+      return b.kills - a.kills;
+    }
+    return 0;
+  });
 
   return (
     <>

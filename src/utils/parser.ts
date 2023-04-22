@@ -23,8 +23,8 @@ export interface Match {
 
 export interface KillStats {
   name: string;
-  kills: number;
-  dead: number;
+  kills?: number;
+  deads?: number;
 }
 
 interface MatchedType {
@@ -32,9 +32,14 @@ interface MatchedType {
   match: RegExpMatchArray | null;
 }
 
+/**
+ * Go through array of regex patterns to see if provided line matches with one
+ *
+ * @param line - string
+ * @returns - MatchedType | null
+ */
 const evaluateLines = (line: string): MatchedType | null => {
   const patternMatched = patterns.filter(ep => line.match(ep.pattern));
-  //   console.log('patternMatched.length', patternMatched.length);
 
   if (patternMatched.length === 0) {
     return null;
@@ -45,8 +50,6 @@ const evaluateLines = (line: string): MatchedType | null => {
   }
   const matches = line.match(patternMatched[0].pattern);
 
-  //   console.log('patternMatched', patternMatched);
-  //   console.log(matches);
   // Will return only one type of MatchedType
   return { case: patternMatched[0].case, match: matches };
 };
@@ -54,33 +57,41 @@ const evaluateLines = (line: string): MatchedType | null => {
 /**
  * Calculate player stats
  *
- * @param userKillStats - array of player kills
+ * @param playerKillStats - array of player kills
  * @param killer - player name
  * @returns new array with updated values
  */
 const calculatePlayerStats = (
-  userKillStats: KillStats[],
+  playerKillStats: KillStats[],
   killer: string,
   dead: string,
 ) => {
   // If array contains item with player name, it's kill/death score will be increased
   // otherwise a new entry will be added
-  if (userKillStats.some(obj => obj.name === killer || obj.name === dead)) {
-    return userKillStats.map(obj => {
-      if (obj.name === killer) {
-        return { ...obj, kills: ++obj.kills };
-      }
-      if (obj.name === dead) {
-        return { ...obj, dead: ++obj.dead };
-      }
-      return obj;
-    });
+
+  const newKillstats: KillStats[] = [...playerKillStats];
+
+  //Updating killer's stats
+  const theKiller = newKillstats.find(o => o.name === killer);
+  if (theKiller) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    theKiller.kills = ++theKiller.kills!;
   } else {
-    return [
-      ...userKillStats,
-      { name: killer, kills: killer ? 1 : 0, dead: dead ? 1 : 0 },
-    ];
+    newKillstats.push({ name: killer, kills: 1, deads: 0 });
   }
+
+  const newDeathstats: KillStats[] = [...newKillstats];
+
+  //   Updating dead's stats
+  const theDead = newDeathstats.find(o => o.name === dead);
+  if (theDead) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    theDead.deads = ++theDead.deads!;
+  } else {
+    newDeathstats.push({ name: dead, kills: 0, deads: 1 });
+  }
+
+  return newDeathstats;
 };
 
 /**
@@ -158,10 +169,8 @@ export const parseLogs = (text: string): Match => {
           break;
 
         case 'killed':
-          console.log('killed');
           if (matches.match) {
-            const [, killer, killerSide, dead] = matches.match;
-            console.log(' killer, killerSide, dead', killer, killerSide, dead);
+            const [, killer, , dead] = matches.match;
             if (killer && dead) {
               accMatch.userStats = calculatePlayerStats(
                 accMatch.userStats,
@@ -178,7 +187,9 @@ export const parseLogs = (text: string): Match => {
       }
     }
 
+    // TODO this should also be moved into the switch case
     if (logString?.includes('Round_End')) {
+      // Last Round_End determines end game time
       accMatch.matchEnd = timestamp;
     }
     if (logString?.includes('MatchStatus')) {

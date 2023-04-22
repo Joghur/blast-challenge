@@ -37,7 +37,7 @@ const PlayerScores = ({ killStats }: Props) => {
                 }}>
                 <TableCell>{stat.name}</TableCell>
                 <TableCell align="right">{stat.kills}</TableCell>
-                <TableCell align="right">{stat.dead}</TableCell>
+                <TableCell align="right">{stat.deads}</TableCell>
               </TableRow>
             ))}
           </TableBody>
