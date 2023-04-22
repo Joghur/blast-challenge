@@ -41,13 +41,13 @@ const Accolades = ({ match }: Props) => {
       <Typography variant="h5">Accolades</Typography>
       <Stack direction="row" spacing={2}>
         <Stack alignItems="flex-end">
-          <Typography>pistolkills</Typography>
-          <Typography>firstkills</Typography>
-          <Typography>burndamage</Typography>
-          <Typography>hsp</Typography>
-          <Typography>3k</Typography>
-          <Typography>4k</Typography>
-          <Typography>cashspent</Typography>
+          <Typography>Most pistol kills</Typography>
+          <Typography>Most first kills</Typography>
+          <Typography>Highest burn damage</Typography>
+          <Typography>Headshot</Typography>
+          <Typography>Most 3ks</Typography>
+          <Typography>Most 4ks</Typography>
+          <Typography>Highest cash spender</Typography>
         </Stack>
         <Stack alignItems="flex-start">
           <Typography>{pistolkills.name}</Typography>
@@ -62,7 +62,7 @@ const Accolades = ({ match }: Props) => {
           <Typography>{pistolkills.value.toFixed()}</Typography>
           <Typography>{firstkills.value.toFixed()}</Typography>
           <Typography>{burndamage.value.toFixed()}</Typography>
-          <Typography>{hsp.value.toFixed()}</Typography>
+          <Typography>{hsp.value.toFixed()}%</Typography>
           <Typography>{threeK.value.toFixed()}</Typography>
           <Typography>{fourK.value.toFixed()}</Typography>
           <Typography>{cashspent.value.toFixed()}</Typography>

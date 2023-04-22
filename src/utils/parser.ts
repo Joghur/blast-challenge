@@ -170,7 +170,6 @@ export const parseLogs = (text: string): Match => {
                 value: Number(value),
               },
             ];
-            console.log(accoladeType, name, value, score);
           }
           break;
 
