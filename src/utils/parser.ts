@@ -1,3 +1,5 @@
+import { PatternCase, patterns } from './patterns';
+
 interface Accolade {
   accoladeType: string;
   name: string;
@@ -25,36 +27,10 @@ export interface KillStats {
   dead: number;
 }
 
-type PatternCase = 'killed' | 'accolade' | 'error';
-
-interface EvaluatePatternType {
-  pattern: RegExp;
-  case: PatternCase;
-  match?: RegExpMatchArray | null;
-}
 interface MatchedType {
   case: PatternCase;
   match: RegExpMatchArray | null;
 }
-
-// (\d{2}\/\d{2}\/\d{4})\s-\s(\d{2}:\d{2}:\d{2}):\sGame\sOver:\s([a-z]+)
-
-// eslint-disable-next-line prettier/prettier
-const dateAndTime = '(d{2}/d{2}/d{4})s-s(d{2}:d{2}:d{2})';
-
-const patterns: EvaluatePatternType[] = [
-  {
-    // three groups: map type, score and map time
-    case: 'killed',
-    pattern: /^.+(de_[a-z]+)\sscore\s(\d{1,2}:\d{1,2})\safter\s(\d{1,3})\smin$/,
-  },
-  {
-    // 4 groups, accolade-type, name, value and score
-    case: 'accolade',
-    pattern:
-      /ACCOLADE,\sFINAL:\s{(pistolkills|burndamage|firstkills|hsp|kills|3k|4k|hsp|cashspent|burndamage)},\s+(.+)<\d+>,\s+VALUE:\s(\d+.\d+),.+SCORE:\s(\d+.\d+)$/,
-  },
-];
 
 const evaluateLines = (line: string): MatchedType | null => {
   const patternMatched = patterns.filter(ep => line.match(ep.pattern));
@@ -173,17 +149,21 @@ export const parseLogs = (text: string): Match => {
           }
           break;
 
+        case 'matchStart':
+          // Last Match_start counts
+          if (matches.match) {
+            console.log('patternMatched');
+            accMatch = { ...initMatch }; // Reset match when Match_Start
+            accMatch.matchStart = timestamp;
+          }
+          break;
+
         default:
           console.log('No pattern found for this line:', textLine);
           break;
       }
     }
 
-    // Last Match_start counts
-    if (logString?.includes('Match_Start')) {
-      accMatch = { ...initMatch }; // Reset match when Match_Start
-      accMatch.matchStart = timestamp;
-    }
     if (logString?.includes('Round_End')) {
       accMatch.matchEnd = timestamp;
     }
