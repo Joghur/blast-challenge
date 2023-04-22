@@ -14,7 +14,7 @@ interface EvaluatePatternType {
 export const patterns: EvaluatePatternType[] = [
   {
     // three groups: map type, score and map time
-    case: 'killed',
+    case: 'mapScore',
     pattern: /^.+(de_[a-z]+)\sscore\s(\d{1,2}:\d{1,2})\safter\s(\d{1,3})\smin$/,
   },
   {
@@ -24,9 +24,14 @@ export const patterns: EvaluatePatternType[] = [
       /ACCOLADE,\sFINAL:\s{(pistolkills|burndamage|firstkills|hsp|kills|3k|4k|hsp|cashspent|burndamage)},\s+(.+)<\d+>,\s+VALUE:\s(\d+.\d+),.+SCORE:\s(\d+.\d+)$/,
   },
   {
-    // x groups,
     case: 'matchStart',
     pattern: /Match_Start/,
+  },
+  {
+    // 3 groups: Killer, killer-side and killed
+    case: 'killed',
+    pattern:
+      /"(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[\d+ -?\d+ -?\d+\] killed "(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[(\d+) (-?\d+) (-?\d+)\] with "(.*?)"/,
   },
 ];
 

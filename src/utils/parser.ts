@@ -124,7 +124,7 @@ export const parseLogs = (text: string): Match => {
 
     if (matches) {
       switch (matches.case) {
-        case 'killed':
+        case 'mapScore':
           if (matches.match) {
             const [, map, score, mapTime] = matches.match;
             accMatch.map = map;
@@ -152,9 +152,23 @@ export const parseLogs = (text: string): Match => {
         case 'matchStart':
           // Last Match_start counts
           if (matches.match) {
-            console.log('patternMatched');
             accMatch = { ...initMatch }; // Reset match when Match_Start
             accMatch.matchStart = timestamp;
+          }
+          break;
+
+        case 'killed':
+          console.log('killed');
+          if (matches.match) {
+            const [, killer, killerSide, dead] = matches.match;
+            console.log(' killer, killerSide, dead', killer, killerSide, dead);
+            if (killer && dead) {
+              accMatch.userStats = calculatePlayerStats(
+                accMatch.userStats,
+                killer,
+                dead,
+              );
+            }
           }
           break;
 
@@ -177,18 +191,6 @@ export const parseLogs = (text: string): Match => {
       if (logString?.includes('Score')) {
         accMatch.roundsPlayed =
           Number(logString.split('RoundsPlayed: ')[1]) || 0;
-      }
-    }
-    if (logString?.includes('killed') && !logString?.includes('killed other')) {
-      // Log example - 11/28/2021 - 21:30:04: "ZywOo<26><STEAM_1:1:76700232><TERRORIST>" [966 -585 -640] killed "b1t<35><STEAM_1:0:143170874><CT>" [798 -1313 -576] with "ak47"
-      const killer = logString.split('<')[0].slice(1); // Quick and dirty way to get name from above text
-      const dead = logString.split('killed "')[1].split('<')[0];
-      if (killer) {
-        accMatch.userStats = calculatePlayerStats(
-          accMatch.userStats,
-          killer,
-          dead,
-        );
       }
     }
   });
