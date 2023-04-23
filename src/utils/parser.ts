@@ -92,6 +92,8 @@ export const parseLogs = (text: string): Match => {
     const logString = logPart?.trim();
 
     const matches = evaluateLines(logString);
+
+    //   This will do the heavy lifting
     accMatch = updateMatch(matches, accMatch, initMatch, timestamp, textLine);
 
     // TODO this should also be moved into the switch case in above function call

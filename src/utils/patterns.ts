@@ -1,5 +1,15 @@
 import { KillStats, Match, MatchedType } from './parser';
 
+/**
+ * To make a new parser feature, add three parts:
+ * 1. PatternCase - Name of feature in type PatternCase
+ * 2. patterns - Add regex pattern
+ * 3. updateMatch - Add the logic to add found values to match object
+ */
+
+/**
+ * Add to this a new parserfeatures name
+ */
 export type PatternCase =
   | 'killed'
   | 'accolade'
@@ -13,9 +23,12 @@ interface EvaluatePatternType {
   match?: RegExpMatchArray | null;
 }
 
+/**
+ * Add to this a regex pattern and name of the new feature
+ */
 export const patterns: EvaluatePatternType[] = [
   {
-    // three groups: map type, score and map time
+    // 3 groups: map type, score and map time
     case: 'mapScore',
     pattern: /^.+(de_[a-z]+)\sscore\s(\d{1,2}:\d{1,2})\safter\s(\d{1,3})\smin$/,
   },
@@ -37,6 +50,17 @@ export const patterns: EvaluatePatternType[] = [
   },
 ];
 
+/**
+ * Add logic to this switch/case. If there is no logic accompanying the regex above an console log
+ * will explain this
+ *
+ * @param matches found regex match
+ * @param accMatch the match object to update
+ * @param initMatch empty match object
+ * @param timestamp
+ * @param textLine
+ * @returns updated match object
+ */
 export const updateMatch = (
   matches: MatchedType | null,
   accMatch: Match,
