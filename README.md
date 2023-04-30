@@ -13,17 +13,21 @@ To make a new parser feature, add three parts:
 
 Afterwards use updated match object in react component
 
-## Initialization
+## Setup
 
-### Add data source file
+### Create file **src/sources/dataSource.ts**
 
-Create file **src/sources/dataSource.ts**
 Add this
 
     export const logSource = '<URL TO CSGO LOG>';
+
+## Initialization
 
 ### `npm i`
 
 ## Run
 
 ### `npm start`
+
+## Showcase
+![Parser example](public/csgoparser.png 'Parser')

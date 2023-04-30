@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { KillStats, Match, MatchedType } from './parser';
 
 /**
@@ -12,9 +13,10 @@ import { KillStats, Match, MatchedType } from './parser';
  */
 export type PatternCase =
   | 'killed'
-  | 'accolade'
+  | 'attacked'
   | 'matchStart'
   | 'mapScore'
+  | 'accolade'
   | 'error';
 
 interface EvaluatePatternType {
@@ -27,6 +29,18 @@ interface EvaluatePatternType {
  * Add to this a regex pattern and name of the new feature
  */
 export const patterns: EvaluatePatternType[] = [
+  {
+    // 3 groups: Killer, killer-side and killed
+    case: 'killed',
+    pattern:
+      /"(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[\d+ -?\d+ -?\d+\] killed "(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[(\d+) (-?\d+) (-?\d+)\] with "(.*?)"/,
+  },
+  {
+    // 3 groups: Attacker, attacked and damage given
+    case: 'attacked',
+    pattern:
+      /"(.+?)<\d+><STEAM_\d:\d:\d+><.+>" \[\d+ -?\d+ -?\d+\] attacked "(.+?)<\d+><STEAM_\d:\d:\d+><.+>" \[\d+ -?\d+ -?\d+\].+\(damage\s"(\d+)"/,
+  },
   {
     // 3 groups: map type, score and map time
     case: 'mapScore',
@@ -42,17 +56,11 @@ export const patterns: EvaluatePatternType[] = [
     case: 'matchStart',
     pattern: /Match_Start/,
   },
-  {
-    // 3 groups: Killer, killer-side and killed
-    case: 'killed',
-    pattern:
-      /"(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[\d+ -?\d+ -?\d+\] killed "(.+?)<\d+><STEAM_\d:\d:\d+><(CT|TERRORIST)>" \[(\d+) (-?\d+) (-?\d+)\] with "(.*?)"/,
-  },
 ];
 
 /**
- * Add logic to this switch/case. If there is no logic accompanying the regex above an console log
- * will explain this
+ * Add logic to this switch/case.
+ * If there is no logic accompanying the regex a console.log will explain this
  *
  * @param matches found regex match
  * @param accMatch the match object to update
@@ -109,6 +117,7 @@ export const updateMatch = (
           if (killer && dead) {
             accMatch.userStats = calculatePlayerStats(
               accMatch.userStats,
+              'killed',
               killer,
               dead,
             );
@@ -116,8 +125,24 @@ export const updateMatch = (
         }
         break;
 
+      case 'attacked':
+        if (matches.match) {
+          const [, attacker, attacked, damage] = matches.match;
+
+          if (attacker && attacked) {
+            accMatch.userStats = calculatePlayerStats(
+              accMatch.userStats,
+              'attacked',
+              attacker,
+              attacked,
+              Number(damage),
+            );
+          }
+        }
+        break;
+
       default:
-        console.log('No pattern found for this line:', textLine);
+        console.log('No logic found for this line:', textLine);
         break;
     }
   }
@@ -128,38 +153,54 @@ export const updateMatch = (
  * Calculate player stats
  *
  * @param playerKillStats - array of player kills
- * @param killer - player name
+ * @param attacker - player name
  * @returns new array with updated values
  */
 const calculatePlayerStats = (
   playerKillStats: KillStats[],
-  killer: string,
-  dead: string,
+  type: 'attacked' | 'killed' = 'killed',
+  attacker: string,
+  attacked: string,
+  damage = 0,
 ) => {
-  // If array contains item with player name, it's kill/death score will be increased
+  // If array contains item with player name, it's kill/death/damage score will be increased
   // otherwise a new entry will be added
 
-  const newKillstats: KillStats[] = [...playerKillStats];
+  const newAttackStats: KillStats[] = [...playerKillStats];
 
-  //Updating killer's stats
-  const theKiller = newKillstats.find(o => o.name === killer);
-  if (theKiller) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    theKiller.kills = ++theKiller.kills!;
+  //Updating attacker's stats
+  const theAttacker = newAttackStats.find(o => o.name === attacker);
+  if (theAttacker) {
+    if (type === 'killed') {
+      theAttacker.kills = ++theAttacker.kills!;
+    } else {
+      theAttacker.damageGiven = theAttacker.damageGiven! + damage;
+    }
   } else {
-    newKillstats.push({ name: killer, kills: 1, deads: 0 });
+    newAttackStats.push({
+      name: attacker,
+      kills: 1,
+      deaths: 0,
+      damageGiven: 0,
+    });
   }
 
-  const newDeathstats: KillStats[] = [...newKillstats];
+  const newAttackedstats: KillStats[] = [...newAttackStats];
 
-  //   Updating dead's stats
-  const theDead = newDeathstats.find(o => o.name === dead);
-  if (theDead) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    theDead.deads = ++theDead.deads!;
+  //   Updating attecked's stats
+  const theAttacked = newAttackedstats.find(o => o.name === attacked);
+  if (theAttacked) {
+    if (type === 'killed') {
+      theAttacked.deaths = ++theAttacked.deaths!;
+    }
   } else {
-    newDeathstats.push({ name: dead, kills: 0, deads: 1 });
+    newAttackedstats.push({
+      name: attacked,
+      kills: 0,
+      deaths: 1,
+      damageGiven: 0,
+    });
   }
 
-  return newDeathstats;
+  return newAttackedstats;
 };

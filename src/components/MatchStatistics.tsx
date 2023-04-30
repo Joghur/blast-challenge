@@ -22,8 +22,8 @@ const MatchStatistics = () => {
       .then(response => {
         setLog(response.data);
       })
-      .catch(error => {
-        console.log('error ----', error);
+      .catch(() => {
+        console.log('error when fetching');
       });
   }, []);
 
@@ -54,7 +54,7 @@ const MatchStatistics = () => {
           <Stack alignItems="center" spacing={2}>
             <MatchHeader match={match} />
             <MatchResult match={match} />
-            <PlayerScores killStats={sortedKillStats} />
+            <PlayerScores killStats={sortedKillStats} match={match} />
             <Accolades match={match} />
           </Stack>
         </Paper>

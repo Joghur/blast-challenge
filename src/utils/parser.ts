@@ -24,7 +24,8 @@ export interface Match {
 export interface KillStats {
   name: string;
   kills?: number;
-  deads?: number;
+  deaths?: number;
+  damageGiven?: number;
 }
 
 export interface MatchedType {
