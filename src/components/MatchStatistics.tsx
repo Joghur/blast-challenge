@@ -1,16 +1,39 @@
 import { Paper, Stack, Typography } from '@mui/material';
-import React, { useState } from 'react';
-import { log } from '../sources/match_log';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Match, parseLogs, KillStats } from '../utils/parser';
 import Accolades from './Accolades';
 import MatchHeader from './MatchHeader';
 import MatchResult from './MatchResult';
 import PlayerScores from './PlayerScores';
+import { logSource } from '../sources/dataSource';
 
 const MatchStatistics = () => {
-  const [match] = useState<Match>(parseLogs(log) || []);
+  const [match, setMatch] = useState<Match | null>(null);
+  const [log, setLog] = useState<string | null>(null);
 
-  if (!match) {
+  useEffect(() => {
+    axios
+      .get(logSource, {
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+      .then(response => {
+        setLog(response.data);
+      })
+      .catch(error => {
+        console.log('error ----', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (log) {
+      setMatch(parseLogs(log));
+    }
+  }, [log]);
+
+  if (!log || !match) {
     return null;
   }
 
