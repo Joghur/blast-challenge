@@ -1,6 +1,6 @@
-import { Paper, Stack, Typography } from '@mui/material';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Paper, Stack, Typography } from '@mui/material';
 import { Match, parseLogs, KillStats } from '../utils/parser';
 import Accolades from './Accolades';
 import MatchHeader from './MatchHeader';
